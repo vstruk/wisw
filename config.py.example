@@ -1,0 +1,7 @@
+SSID = 'myssid'
+PSK = 'secret'
+BROKER = 'mqtt.example.com'
+
+DEVMAP = {'aa:bb:cc:dd:ee:f1' : 'heater',
+          'aa:bb:cc:dd:ee:f2' : 'torchere',
+          }
