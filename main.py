@@ -1,9 +1,10 @@
-from sonoff.sonoff import SonoffDual
+from sonoff.sonoff import SonoffDualDevice
 from sonoff.controllers import SonoffDualController
 import time
 from config import *
 
-device = SonoffDual(SSID,PSK,DEVMAP)
+device = SonoffDualDevice(SSID,PSK,DEVMAP)
+device.connect_wlan()
 
 controller = SonoffDualController(device,BROKER)
 

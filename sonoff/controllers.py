@@ -1,11 +1,12 @@
 from machine import Timer
 from utime import time
 from .solidmqtt import SolidMQTTClient as MQTTClient
-from .helpers import Lock
 from .iotmanager import IotManager
 
 # Controller base class
 # Used by both Single and Dual
+# make it abstract
+
 class Controller():
     def __init__(self,sonoff,broker):
         self.sonoff = sonoff
@@ -99,3 +100,19 @@ class SonoffDualController(Controller):
 
 # TODO: to be implemented
 #class SonoffSingleController(Controller):
+
+class Lock():
+    def __init__(self,value=True):
+        self.locked = value
+
+    def __bool__(self):
+        return self.locked
+
+    def is_locked(self):
+        return self.__bool__()
+
+    def lock(self):
+        self.locked = True
+
+    def unlock(self):
+        self.locked = False

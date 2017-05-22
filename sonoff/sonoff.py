@@ -2,7 +2,7 @@ from machine import UART
 import ubinascii
 import network
 
-class BaseSonoff():
+class BaseSonoffDevice():
     def __init__(self,ssid,psk,devmap):
         self.ssid = ssid
         self.psk = psk
@@ -13,9 +13,7 @@ class BaseSonoff():
         self.inputs = {}
         self.outputs = {}
 
-        self._connect_wlan()
-
-    def _connect_wlan(self):
+    def connect_wlan(self):
         if not self.is_online:
             self.wlan.active(True)
             self.wlan.connect(self.ssid,self.psk)
@@ -31,11 +29,11 @@ class BaseSonoff():
         return ubinascii.hexlify(self.wlan.config('mac'),':').decode()
 
 
-class SonoffDual(BaseSonoff):
+class SonoffDualDevice(BaseSonoffDevice):
 
 
     def __init__(self,*args,**kwargs):
-        super(SonoffDual,self).__init__(*args,**kwargs)
+        super(SonoffDualDevice,self).__init__(*args,**kwargs)
 
         self.relay_class = DualRelay
 
@@ -74,7 +72,7 @@ class SonoffDual(BaseSonoff):
 # TODO: To be implemented
 # Use machine.time_pulse_us(pin, pulse_level, timeout_us=1000000) to measure
 # and filter pulses
-#class SonoffSingle(BaseSonoff):
+#class SonoffSingle(BaseSonoffDevice):
 
 # TODO. Make it a singleton to avoid possible class variable(octet) clash in
 # case of improper usage
