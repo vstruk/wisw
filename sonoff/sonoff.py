@@ -1,17 +1,24 @@
-from machine import UART
+from machine import UART,Pin
 import ubinascii
 import network
+from .lock import Lock
+from machine import Timer
 
 class BaseSonoffDevice():
-    def __init__(self,ssid,psk,devmap):
+    def __init__(self,ssid,psk,settings):
         self.ssid = ssid
         self.psk = psk
-        self.devmap = devmap
         self.wlan = network.WLAN(network.STA_IF)
         self.mac = self._get_mac()
-        self.name = self._get_device_name()
+        self.settings = settings[self.mac]
+        self.name = self.settings['name']
         self.inputs = {}
         self.outputs = {}
+        self.dht = None
+
+        pin = self.settings.get('dht22_pin')
+        if pin:
+            self.dht=DHTSensor(pin)
 
     def connect_wlan(self):
         if not self.is_online:
@@ -22,15 +29,11 @@ class BaseSonoffDevice():
     def is_online(self):
         return self.wlan.isconnected()
 
-    def _get_device_name(self):
-        return self.devmap[self.mac]
-
     def _get_mac(self):
         return ubinascii.hexlify(self.wlan.config('mac'),':').decode()
 
 
 class SonoffDualDevice(BaseSonoffDevice):
-
 
     def __init__(self,*args,**kwargs):
         super(SonoffDualDevice,self).__init__(*args,**kwargs)
@@ -45,7 +48,6 @@ class SonoffDualDevice(BaseSonoffDevice):
 
     def check_uart(self):
         """
-        TODO write in in a good way
         Reads uart and returns bool value if the relay state changed or not
         """
         msg = self.uart.read() # Returns None if no data received
@@ -69,10 +71,44 @@ class SonoffDualDevice(BaseSonoffDevice):
                         + bytes((self.relay_class.octet,))
                         + self.relay_class.MSG_TAIL)
 
-# TODO: To be implemented
+class SonoffSingleDevice(BaseSonoffDevice):
+# TODO:
 # Use machine.time_pulse_us(pin, pulse_level, timeout_us=1000000) to measure
 # and filter pulses
-#class SonoffSingle(BaseSonoffDevice):
+    def __init__(self):
+        raise NotImplementedError
+
+class DHTSensor():
+    """
+    DHT22 humidity and temperature sensor
+    """
+    def __init__(self,pin):
+        import dht
+
+        self.remeasure = Lock()
+        self.measure_timer = Timer(-1) # Temperature and humidity measure interval
+        self.measure_timer.init(period=2000,
+                               mode=Timer.PERIODIC,
+                               callback = lambda l: self.remeasure.unlock())
+
+        self.sensor = dht.DHT22(Pin(pin))
+
+    def measure(self):
+        if not self.remeasure.is_locked():
+            try:
+                self.sensor.measure()
+            except OSError:
+                pass
+            self.remeasure.lock()
+
+    def humidity(self):
+        self.measure()
+        return self.sensor.humidity()
+
+    def temperature(self):
+        self.measure()
+        return self.sensor.temperature()
+
 
 # TODO. Make it a singleton to avoid possible class variable(octet) clash in
 # case of improper usage
@@ -85,7 +121,7 @@ class DualRelay():
     For example in case relay1 is turned on the button1 click will return
     x00.
 
-    Byte sequence           R1 R2 R3 | Binary
+    Byte sequence           R1 R2 U  | Binary
     b'\xa0\x00\x00\xa1'     0  0  0  | 000
     b'\xa0\x00\x01\xa1'     1  0  0  | 100
     b'\xa0\x00\x02\xa1'     0  1  0  | 010
@@ -93,6 +129,9 @@ class DualRelay():
     b'\xa0\x00\x04\xa1'     0  0  1  | 001
     b'\xa0\x00\x07\xa1'     1  1  1  | 111
     ...
+
+    R1,2 - Relays
+    U    - Unused bit
 
     """
 

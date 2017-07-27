@@ -1,7 +1,16 @@
+# Config file is shared among all the devices
+# Device specific settings are determined by it's MAC address 
+
 SSID = 'myssid'
 PSK = 'secret'
 BROKER = 'mqtt.example.com'
 
-DEVMAP = {'aa:bb:cc:dd:ee:f1' : 'heater',
-          'aa:bb:cc:dd:ee:f2' : 'torchere',
-          }
+
+SETTINGS = {'aa:bb:cc:dd:ee:f1' : { 'name':'heater',
+                                    'type':'dual',
+                                  },
+
+            'aa:bb:cc:dd:ee:f2' : { 'name' : 'torchere',
+                                    'type':'dual',
+                                  },
+            }

@@ -2,12 +2,15 @@ from machine import Timer
 from utime import time
 from .solidmqtt import SolidMQTTClient as MQTTClient
 from .iotmanager import IotManager
+from .lock import Lock
 
-# Controller base class
-# Used by both Single and Dual
-# make it abstract
 
 class Controller():
+    """
+    Controller base class
+    Inherited by both SonoffSingleController and SonoffDualController
+    It's an abstract class but Micropython has no abc module
+    """
     def __init__(self,sonoff,broker):
         self.sonoff = sonoff
         self.devname = sonoff.name
@@ -15,28 +18,28 @@ class Controller():
         self.outputs = sonoff.outputs
         self.mqtt = MQTTClient(self.devname,broker)
 
-        # Techincally timers are interrupts.
-        # Using set/unset flags within the interrupts and then process them
-        # in the main cycle as recommended
+        # Technically timers are interrupts.
+        # Using set/unset flags within the interrupts and leaving them ASAP.
+        # Process flags in the main cycle as recommended by micropython guide.
         self.mqtt_retry = Lock(False)
-        self.health_pub = Lock()
+        self.report_pub = Lock()
 
         self.mqtt_init()
 
         self.reinit_timer = Timer(-1) # Reconnect to the borker and re-init mqtt
                                       # Timer prevents flooding in case the
-                                      # network is up but broker is down
+                                      # network is up but broker is down.
 
-        self.health_timer = Timer(-1) # Publishing service health, i.e. uptime
+        self.report_timer = Timer(-1) # Publishing reports, i.e. uptime
 
-        self.reinit_timer.init(period=1000,
+        self.reinit_timer.init(period=5000,
                                mode=Timer.PERIODIC,
-                               # Can't avoid lamdas
+                               # Can't avoid lambdas
                                # here because of callback implementation
                                callback=lambda l: self.mqtt_retry.unlock())
-        self.health_timer.init(period=5000,
+        self.report_timer.init(period=5000,
                                mode=Timer.PERIODIC,
-                               callback = lambda l: self.health_pub.unlock())
+                               callback = lambda l: self.report_pub.unlock())
 
     def mqtt_init(self):
         if not self.mqtt_retry.is_locked():
@@ -46,13 +49,27 @@ class Controller():
                 self.mqtt_subscribe()
                 self.publish_all()
 
-    def publish_health(self):
-        if not self.health_pub.is_locked():
-            self.health_pub.lock()
-            return   self.mqtt.publish(IotManager.get_device_topic(self.devname),
-                              '{{uptime:{}}}'.format(time()),
-                              qos=1
-                              )
+    def publish_report(self):
+
+        if not self.report_pub.is_locked():
+
+            report = {}
+            report['hostname']= self.devname
+            report['uptime'] = time()
+
+            if self.sonoff.dht:
+                report['humidity'] = self.sonoff.dht.humidity()
+                report['temperature'] = self.sonoff.dht.temperature()
+
+
+            self.report_pub.lock()
+
+            # We don't use ujson module to save memory
+            # The only thing we need is s/'/"/
+            return self.mqtt.publish(IotManager.get_device_topic(self.devname),
+                                     str(report).replace("'", '"'),
+                                     qos = 0)
+
         return True
 
 
@@ -81,7 +98,7 @@ class Controller():
             IotManager.get_state_topic(self.devname,control),
             IotManager.get_state_value(self.outputs[control].state),
             retain=True, # Keep status messages persistent
-            qos=1        # so any recently connected client app
+            qos=0        # so any recently connected client app
             )            # could get the status
 
 
@@ -90,29 +107,14 @@ class SonoffDualController(Controller):
 
         # socket.read in non-blocking mode at mqtt.check_msg()
         # returns None(instead of '') in some cases(see mqtt implementation)
-        # so publish_health() also works as an additional 'ping'
-        if not self.mqtt.check_msg() or not self.publish_health():
+        # so publish_report() also works as an additional 'ping'
+        if not self.mqtt.check_msg() or not self.publish_report():
             self.mqtt_init()
 
         #Update mqtt status topic on change only
         if self.sonoff.check_uart():
             self.publish_all()
 
-# TODO: to be implemented
-#class SonoffSingleController(Controller):
-
-class Lock():
-    def __init__(self,value=True):
-        self.locked = value
-
-    def __bool__(self):
-        return self.locked
-
-    def is_locked(self):
-        return self.__bool__()
-
-    def lock(self):
-        self.locked = True
-
-    def unlock(self):
-        self.locked = False
+class SonoffSingleController(Controller):
+    def __init__(self):
+        raise NotImplementedError

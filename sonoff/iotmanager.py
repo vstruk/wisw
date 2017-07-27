@@ -1,15 +1,14 @@
-# TODO Calculate all the values(str.encode()) once on class init.
-# Current implementation is suboptimal.
+# TODO
+# Current implementation is suboptimal as it calls str.encode on every get_*
 
 class IotManager():
     """ The class provides topics compatible with IoTManager[1] for publishing
     and reading.
     The idea is to make architecture pluggable and make it easy to replace this
     class with another implementation for another client.
+
     [1] https://play.google.com/store/apps/details?id=ru.esp8266.iotmanager
     """
-
-    # TODO Does it make sense to rewrite it in setter-getter style?
 
     @staticmethod
     def get_state_topic(device,control):
@@ -61,4 +60,4 @@ class IotManager():
         Returns:
             byte
         """
-        return str.encode('/IoTmanager/{}/uptime'.format(device))
+        return str.encode('/IoTmanager/{}/report'.format(device))

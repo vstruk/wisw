@@ -34,7 +34,7 @@ class SolidMQTTClient(MQTTClient):
         try:
             self.addr = socket.getaddrinfo(self.server, self.port)[0][-1]
             super().connect(*args,**kwargs)
-            self.sock.settimeout(200)
+            self.sock.settimeout(2)
             return True
         except OSError:
             return False
