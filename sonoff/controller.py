@@ -30,16 +30,14 @@ class Controller():
                                       # Timer prevents flooding in case the
                                       # network is up but broker is down.
 
-        self.report_timer = Timer(-1) # Publishing reports, i.e. uptime
+        self.report_timer = Timer(-1) # Publishing reports, i.e. uptime,
+                                      # temperature,humidity
 
-        self.reinit_timer.init(period=5000,
-                               mode=Timer.PERIODIC,
-                               # Can't avoid lambdas
-                               # here because of callback implementation
-                               callback=lambda l: self.mqtt_retry.unlock())
-        self.report_timer.init(period=5000,
-                               mode=Timer.PERIODIC,
-                               callback = lambda l: self.report_pub.unlock())
+        self.reinit_timer.init(period=5000, mode=Timer.PERIODIC,
+                               callback=self.mqtt_retry.unlock)
+
+        self.report_timer.init(period=5000, mode=Timer.PERIODIC,
+                               callback=self.report_pub.unlock)
 
     def mqtt_init(self):
         if not self.mqtt_retry.is_locked():
@@ -84,14 +82,14 @@ class Controller():
                                 )
 
     def mqtt_callback(self,topic,msg):
-        for cname,device in self.outputs.items():
-            if topic == IotManager.get_control_topic(self.devname,cname):
+        for relay_name,relay_class in self.outputs.items():
+            if topic == IotManager.get_control_topic(self.devname,relay_name):
                 if msg == IotManager.get_control_value(True):
-                    device.high()
+                    relay_class.high()
                 if msg == IotManager.get_control_value(False):
-                    device.low()
-                self.publish_state(cname)
-                self.sonoff.write_uart()
+                    relay_class.low()
+                self.publish_state(relay_name)
+                self.sonoff.write_outputs()
 
     def publish_state(self,control):
         return self.mqtt.publish(
@@ -101,8 +99,6 @@ class Controller():
             qos=0        # so any recently connected client app
             )            # could get the status
 
-
-class SonoffDualController(Controller):
     def process(self):
 
         # socket.read in non-blocking mode at mqtt.check_msg()
@@ -112,9 +108,6 @@ class SonoffDualController(Controller):
             self.mqtt_init()
 
         #Update mqtt status topic on change only
-        if self.sonoff.check_uart():
+        if self.sonoff.check_inputs():
             self.publish_all()
 
-class SonoffSingleController(Controller):
-    def __init__(self):
-        raise NotImplementedError

@@ -7,7 +7,7 @@ BROKER = 'mqtt.example.com'
 
 
 SETTINGS = {'aa:bb:cc:dd:ee:f1' : { 'name':'heater',
-                                    'type':'dual',
+                                    'type':'single',
                                   },
 
             'aa:bb:cc:dd:ee:f2' : { 'name' : 'torchere',
