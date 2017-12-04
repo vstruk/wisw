@@ -4,6 +4,7 @@
 SSID = 'myssid'
 PSK = 'secret'
 BROKER = 'mqtt.example.com'
+WEBREPL_PASSWORD='webrepl_secret'
 
 
 SETTINGS = {'aa:bb:cc:dd:ee:f1' : { 'name':'heater',
@@ -12,5 +13,6 @@ SETTINGS = {'aa:bb:cc:dd:ee:f1' : { 'name':'heater',
 
             'aa:bb:cc:dd:ee:f2' : { 'name' : 'torchere',
                                     'type':'dual',
+                                    'dht22_pin':13,  # Optional
                                   },
             }

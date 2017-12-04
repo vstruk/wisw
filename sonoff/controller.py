@@ -16,7 +16,11 @@ class Controller():
         self.devname = sonoff.name
         self.inputs = sonoff.inputs
         self.outputs = sonoff.outputs
-        self.mqtt = MQTTClient(self.devname,broker)
+
+        # Assume DHCP provides a DNS server
+        # Not really want to handle this corner case
+        dns=sonoff.wlan.ifconfig()[3] # (ip,mask,gw,dns)
+        self.mqtt = MQTTClient(self.devname,broker,dns=dns)
 
         # Technically timers are interrupts.
         # Using set/unset flags within the interrupts and leaving them ASAP.

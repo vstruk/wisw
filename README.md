@@ -1,5 +1,5 @@
 # Open Wi-Fi switch
-This is a free implementation of firmware for Wi-Fi remote switches Itead Sonoff [Basic](https://www.itead.cc/smart-home/sonoff-dual.html) and [Dual](https://www.itead.cc/smart-home/sonoff-wifi-wireless-switch.html) written for [Micropython](https://docs.micropython.org/en/latest/esp8266/) 
+This is a free implementation of firmware for Wi-Fi remote switches Itead Sonoff [Basic](https://www.itead.cc/smart-home/sonoff-dual.html) and [Dual](https://www.itead.cc/smart-home/sonoff-wifi-wireless-switch.html) written for [Micropython](https://docs.micropython.org/en/latest/esp8266/)
 
 ## Rationale
 The device uses proprietary firmware, an Android app and a cloud for interconnection.
@@ -16,8 +16,7 @@ That's why the project was written.
 
 1. First of all you need to reflash your device with Micropython.
 Both Single and Dual models are based on ESP8266.
-There are plenty of detailed articles on the net so please use google.
-In short, you need to solder a few pins and use RS-232 to TTL(3v) converter.
+There are plenty of detailed articles on the net so please use google. Here is an [Example](https://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/intro.html#deploying-the-firmware). In short, you need to solder a few pins and use RS-232 to TTL(3v) converter.
 
 2. Find out MAC address of the device.
 Connect to REPL via serial port and get mac address of the device:
@@ -29,11 +28,12 @@ Connect to REPL via serial port and get mac address of the device:
 * SSID
 * PSK
 * MQTT broker IP
-* Write your device's MAC address to the 'SETTINGS' and set a name for it.
+* WEBREPL_PASSWORD ([WebREPL](https://docs.micropython.org/en/latest/esp8266/esp8266/tutorial/repl.html))
+* Write MAC address of your device to the 'SETTINGS' and set a name for it. See config.py.example
 
 4. Copy project files to the root of the device flash.
 
-5. *(Optional)* Connect pins to push-button switches. Your can find one in a local electrical equipment store. I just use a common garage door switch.
+5. *(Optional)* Connect pins to [push-buttons](https://en.wikipedia.org/wiki/Push-button). Your can find one in a local electrical equipment store. I just use a common garage door switch.
 
 6. Install and configure [IoTManager](https://play.google.com/store/apps/details?id=ru.esp8266.iotmanager) android app.
 
@@ -60,7 +60,7 @@ mosquitto_pub -h <mqtt_host> -t /IoTmanager/<device_name>/relay_1/control -m 0
 ```
 
 ## Requirements:
-- [Micropython > 1.8.7 build 461](http://micropython.org/download#esp8266)
+- [Micropython >= 1.9.3](http://micropython.org/download#esp8266)
 - MQTT server (Mosquitto 1.4.11 is the only tested one, should work with any other though)
 
 ## Licence:

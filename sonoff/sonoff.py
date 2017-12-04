@@ -83,8 +83,8 @@ class SonoffSingle(BaseSonoff):
 
     def __init__(self,*args,**kwargs):
 
-        self.input_prev = False # previous input value
         super(SonoffSingle, self).__init__(*args, **kwargs)
+        self.input_prev = False # previous input value
         self.outputs['relay_0']=SingleRelay()
 
     @property

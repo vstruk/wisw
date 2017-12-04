@@ -2,8 +2,11 @@ from sys import print_exception
 from sonoff.sonoff import SonoffSingle,SonoffDual
 from sonoff.controller import Controller
 from sonoff.sonoff import BaseSonoff
-from config import SSID,PSK,BROKER,SETTINGS
+from config import SSID,PSK,BROKER,SETTINGS,WEBREPL_PASSWORD
+import webrepl
 import time
+
+webrepl.start(password=WEBREPL_PASSWORD)
 
 # Selecting a class according to the device type
 # It made simple as the Factory pattern seems like overkill for a single class

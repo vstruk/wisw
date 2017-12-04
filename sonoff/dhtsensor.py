@@ -1,5 +1,5 @@
 from .lock import Lock
-from machine import Timer
+from machine import Timer, Pin
 import dht
 
 class DHTSensor():
@@ -11,7 +11,7 @@ class DHTSensor():
         self.remeasure = Lock()
         self.measure_timer = Timer(-1) # Temperature and humidity measure interval
         self.measure_timer.init(period=2000, mode=Timer.PERIODIC,
-                                callbac=self.remeasure.unlock)
+                                callback=self.remeasure.unlock)
 
         self.sensor = dht.DHT22(Pin(pin))
 

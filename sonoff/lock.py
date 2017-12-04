@@ -11,8 +11,8 @@ class Lock():
     def is_locked(self):
         return self.__bool__()
 
-    # Should be parametrized as the timer calls it with a (useless in this case)
-    # parameter
+    # Should be parametrized as the Timer() calls it with a
+    # (useless in this case) parameter
     def lock(self,*args,**kwargs):
         self.locked = True
 
