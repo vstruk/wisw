@@ -1,5 +1,5 @@
 # Open Wi-Fi switch
-This is a free implementation of firmware for Wi-Fi remote switches Itead Sonoff [Basic](https://www.itead.cc/smart-home/sonoff-dual.html) and [Dual](https://www.itead.cc/smart-home/sonoff-wifi-wireless-switch.html) written for [Micropython](https://docs.micropython.org/en/latest/esp8266/)
+This is a free implementation of firmware for Wi-Fi remote switches Itead Sonoff [Basic](https://www.itead.cc/smart-home/sonoff-wifi-wireless-switch.html) and [Dual](https://www.itead.cc/smart-home/sonoff-dual.html) written for [Micropython](https://docs.micropython.org/en/latest/esp8266/)
 
 ## Rationale
 The device uses proprietary firmware, an Android app and a cloud for interconnection.
